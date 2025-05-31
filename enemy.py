@@ -7,23 +7,28 @@ class Enemy():
         self.rect = self.animation[0].get_rect(topleft = (x,y))
         self.image = self.animation[0]
         self.start_time = pygame.time.get_ticks()
+        self.update_time = pygame.time.get_ticks()
         self.cur_frame = 0
         self.direction = -1
+        self.is_filp = 1
         
     def draw(self,window):
-        window.blit(self.image,(self.rect.x,self.rect.y))
+        self.flip = pygame.transform.flip(self.image, self.is_filp, 0)
+        window.blit(self.flip, (self.rect.x,self.rect.y))
         
     def move(self):
         current_time = pygame.time.get_ticks()
-        delta_time = (current_time - self.start_time) 
-        if (delta_time > 70):
+        delta_time = current_time -self.update_time
+        if (delta_time <= 2000):
             self.rect.x += self.direction
-            self.start_time = current_time
+        else:
+            self.is_filp = (self.is_filp + 1)%2
+            self.direction *= -1
+            self.update_time = current_time
         
     def update(self):
         current_time = pygame.time.get_ticks()
         delta_time = current_time - self.start_time
-        print(delta_time)
         if self.cur_frame >= len(self.animation):
             self.cur_frame = 0
         if delta_time > 70:           
