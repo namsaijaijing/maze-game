@@ -1,8 +1,9 @@
 import pygame
 
-class Enemy():
+class Enemy(pygame.sprite.Sprite):
     
     def __init__(self,x,y,animation):
+        super().__init__()
         self.animation = animation
         self.rect = self.animation[0].get_rect(topleft = (x,y))
         self.image = self.animation[0]
@@ -10,7 +11,9 @@ class Enemy():
         self.update_time = pygame.time.get_ticks()
         self.cur_frame = 0
         self.direction = -1
-        self.is_filp = 1
+        self.is_filp = 0
+        self.speed = 1.5
+        self.x_pos = float(x)
         
     def draw(self,window):
         self.flip = pygame.transform.flip(self.image, self.is_filp, 0)
@@ -18,9 +21,10 @@ class Enemy():
         
     def move(self):
         current_time = pygame.time.get_ticks()
-        delta_time = current_time -self.update_time
-        if (delta_time <= 2000):
-            self.rect.x += self.direction
+        delta_time = (current_time - self.update_time) / 1000
+        if (delta_time <= 2):
+            self.x_pos += self.direction * self.speed * delta_time
+            self.rect.x = int(self.x_pos)
         else:
             self.is_filp = (self.is_filp + 1)%2
             self.direction *= -1

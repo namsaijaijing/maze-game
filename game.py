@@ -8,6 +8,7 @@ import csv
 
 class MazeGame():
     def __init__(self):
+        pygame.init()
         self.window = pygame.display.set_mode((800,640))
         pygame.display.set_caption("Maze")
         self.bg = pygame.image.load("asset/background/bg.jpg")
@@ -26,6 +27,13 @@ class MazeGame():
         self.enemy1 = Enemy(650,450,self.animation_enemy)
         self.enemy2 = Enemy(300,370,self.animation_enemy)
         self.enemy3 = Enemy(680,100,self.animation_enemy)
+
+        #enemygroup
+
+        self.enemy_group = pygame.sprite.Group()
+        self.enemy_group.add(self.enemy1)
+        self.enemy_group.add(self.enemy2)
+        self.enemy_group.add(self.enemy3)
         
         #coin
         self.coin1 = Coin (95,530,self.animation_coin)
@@ -45,13 +53,18 @@ class MazeGame():
         self.wall_img = pygame.transform.scale(self.wall_img,(32,32))
         self.walls = []
         self.generate_wall()
+
+        #game_state
+        self.text = ""
+        self.finish = False
+        self.font = pygame.font.SysFont("Arial",72)
         
     def load_animate_player(self):
         path = "asset/character/skel/idle"
         lst = []
         for i in range(4):
             img = pygame.image.load(os.path.join(path, f"{i}.png"))
-            img = pygame.transform.scale(img,(64,64))
+            img = pygame.transform.scale(img,(64/1.5,64/1.5))
             lst.append(img)
             
         return lst
@@ -61,7 +74,7 @@ class MazeGame():
         lst = []
         for i in range(4):
             img = pygame.image.load(os.path.join(path, f"run{i}.png"))
-            img = pygame.transform.scale(img,(96,108))
+            img = pygame.transform.scale(img,(48*1.5,54*1.5))
             lst.append(img)
             
         return lst
@@ -96,25 +109,55 @@ class MazeGame():
                 if event.type == pygame.QUIT:
                     running = False
             self.window.blit(self.bg,(0,0))
-            for wall in self.walls:
-                wall.draw(self.window)
-            self.player.draw(self.window)
-            self.player.update()
-            self.player.move(delta_time)
-            self.enemy1.draw(self.window)
-            self.enemy1.update()
-            self.enemy1.move()
-            self.enemy2.draw(self.window)
-            self.enemy2.update()
-            self.enemy2.move()
-            self.enemy3.draw(self.window)
-            self.enemy3.update()
-            self.enemy3.move()
-            self.coins_group.draw(self.window)
-            self.coins_group.update()
-            for coin in self.coins_group:
-                coin.check_collide(self.player)
+            if (not self.finish):
+                for wall in self.walls:
+                    wall.draw(self.window)
+                self.player.draw(self.window)
+                self.player.update()
+                self.player.move(delta_time)
+                self.enemy_group.draw(self.window)
+                for enemy in self.enemy_group:
+                    enemy.move()
+                self.enemy_group.update()
+                self.coins_group.draw(self.window)
+                self.coins_group.update()
+                for coin in self.coins_group:
+                    coin.check_collide(self.player)
+                self.check_wall()
+                self.check_enemy()
+                self.check_coin()
+            else:
+                self.game_over()
             pygame.display.update()
+
+    def check_wall(self):
+        for wall in self.walls:
+            if self.player.rect.colliderect(wall.rect):
+                self.finish = True
+                self.text = 'lose'
+                
+
+    def check_enemy(self):
+        for enemy in self.enemy_group:
+            if self.player.rect.colliderect(enemy.rect):
+                self.finish = True
+                self.text = 'lose'
+
+    def check_coin(self):
+        if self.player.score == 3:
+            self.finish = True
+            self.text = "win"
+            
+
+
+    def game_over(self):
+        if self.text == "lose":
+            display = self.font.render("You Lose!",True,(0,0,0),(255,255,255))
+        else:
+            display = self.font.render("You win!",True,(0,0,0),(255,255,255))
+        self.window.blit(display,(400,320)) 
+
+                
                     
 game = MazeGame()
 game.run()
